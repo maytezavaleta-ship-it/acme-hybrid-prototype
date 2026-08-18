@@ -235,6 +235,25 @@
   .chat-bubble li { margin-bottom: 3px; }
   .chat-ai-label { font-size: 10px; color: var(--grey-400); margin-top: 3px; padding-left: 34px; }
 
+  .quick-chat-footer {
+    padding: 10px 12px; border-top: 1px solid var(--grey-100);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .quick-chat-input {
+    flex: 1; border: 1.5px solid var(--grey-200); border-radius: 20px;
+    padding: 7px 12px; font-size: 12.5px; color: var(--grey-900);
+    outline: none; background: var(--grey-50); font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .quick-chat-input:focus { border-color: var(--chip-border); background: white; }
+  .quick-chat-send {
+    width: 30px; height: 30px; border-radius: 50%; border: none;
+    background: var(--accent); color: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; transition: all 0.15s; flex-shrink: 0;
+  }
+  .quick-chat-send:hover { background: var(--accent-hover); transform: scale(1.05); }
+
   /* ── CASE OVERLAY ── */
   .overlay-backdrop {
     display: none; position: fixed; inset: 0;
@@ -404,6 +423,10 @@
         <div class="quick-chat-close" onclick="closeChat()">✕</div>
       </div>
       <div class="quick-chat-body" id="quick-chat-body"></div>
+      <div class="quick-chat-footer">
+        <input class="quick-chat-input" id="quick-chat-input" type="text" placeholder="Ask Aria anything…" onkeydown="if(event.key==='Enter') sendChatMessage()">
+        <button class="quick-chat-send" onclick="sendChatMessage()">↑</button>
+      </div>
     </div>
   </div>
 
@@ -455,15 +478,6 @@
           </div>
         </div>
 
-        <div class="case-pills-section">
-          <div class="case-pills-label">While your case is being worked — Aria can help now:</div>
-          <div class="case-pills">
-            <button class="nudge-pill" onclick="openCaseChat('mitigation')"><span class="nudge-pill-icon">🛠️</span>Get mitigation steps</button>
-            <button class="nudge-pill" onclick="openCaseChat('workaround')"><span class="nudge-pill-icon">🔄</span>Is there a workaround?</button>
-            <button class="nudge-pill" onclick="openCaseChat('eta')"><span class="nudge-pill-icon">⏱️</span>Expected resolution time?</button>
-            <button class="nudge-pill ask-else" onclick="openCaseChat('other')">✏️ Ask something else</button>
-          </div>
-        </div>
       </div>
       <div class="case-modal-footer">
         <button class="case-submit-btn" onclick="submitCase()">Submit Case →</button>
@@ -477,6 +491,15 @@
       <div class="case-success-body">
         Case <span class="case-number">#AC-209471</span> has been created and assigned to our Authentication team.<br><br>
         Given the active incident (INC-2847), your case is flagged for priority review. You'll receive an update within 2 hours.
+      </div>
+      <div class="case-pills-section" style="text-align:left;">
+        <div class="case-pills-label">While your case is being worked, Aria can help right now:</div>
+        <div class="case-pills">
+          <button class="nudge-pill" onclick="openCaseChat('mitigation')"><span class="nudge-pill-icon">🛠️</span>Get mitigation steps</button>
+          <button class="nudge-pill" onclick="openCaseChat('workaround')"><span class="nudge-pill-icon">🔄</span>Is there a workaround?</button>
+          <button class="nudge-pill" onclick="openCaseChat('eta')"><span class="nudge-pill-icon">⏱️</span>Expected resolution time?</button>
+          <button class="nudge-pill ask-else" onclick="openCaseChat('other_stuck')">✏️ Ask something else</button>
+        </div>
       </div>
       <br>
       <button class="az-cta-btn" style="max-width:200px;margin:0 auto;" onclick="closeOverlay()">Done</button>
@@ -788,6 +811,23 @@
         <div class="chat-avatar ai">🤖</div>
         <div class="chat-bubble ai">${text}</div>
       </div>`;
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById('quick-chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    const body = document.getElementById('quick-chat-body');
+    body.innerHTML += msgHTML('user', text);
+    input.value = '';
+    body.scrollTop = body.scrollHeight;
+    setTimeout(() => {
+      body.innerHTML += msgHTML('ai', `Thanks for your message. I'm looking into that for you — based on your session context and the active incident INC-2847, I'll do my best to help. Is there anything specific about the authentication issue I can clarify?`);
+      body.innerHTML += `<div class="chat-ai-label">Aria · AI-generated · ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>`;
+      body.scrollTop = body.scrollHeight;
+    }, 500);
+    document.getElementById('quick-chat').classList.add('visible');
+    chatOpen = true;
   }
 
   function closeChat() {
