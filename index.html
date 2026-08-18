@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme Support Center — Hybrid Experience</title>
+<style>
+  :root {
+    --navy: #1a1f5e;
+    --navy-light: #2d3282;
+    --accent: #5b5bd6;
+    --accent-hover: #4747c2;
+    --chip-bg: #f5f3ff;
+    --chip-border: #c4b5fd;
+    --chip-text: #4c1d95;
+    --white: #ffffff;
+    --grey-50: #f8f9fa;
+    --grey-100: #f1f3f4;
+    --grey-200: #e8eaed;
+    --grey-400: #9aa0a6;
+    --grey-700: #5f6368;
+    --grey-900: #202124;
+    --red: #d93025;
+    --red-light: #fce8e6;
+    --orange: #e8710a;
+    --orange-light: #fef0e0;
+    --green: #1e8e3e;
+    --green-light: #e6f4ea;
+    --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--grey-50); color: var(--grey-900); min-height: 100vh; }
+
+  /* ── DEMO STEPPER ── */
+  .demo-nav {
+    background: var(--navy);
+    padding: 10px 24px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12px; color: rgba(255,255,255,0.7);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .demo-nav-label { font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; text-transform: uppercase; margin-right: 4px; }
+  .demo-step {
+    padding: 5px 14px; border-radius: 20px; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
+    transition: all 0.2s; font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  }
+  .demo-step:hover { border-color: rgba(255,255,255,0.5); color: white; }
+  .demo-step.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+  .demo-step-arrow { color: rgba(255,255,255,0.3); font-size: 10px; }
+  .demo-context-badge {
+    margin-left: auto; background: rgba(255,255,255,0.1); border-radius: 8px;
+    padding: 4px 10px; font-size: 11px; color: rgba(255,255,255,0.6);
+    max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .demo-context-badge span { color: rgba(255,255,255,0.9); font-weight: 500; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--white); border-bottom: 1px solid var(--grey-200);
+    padding: 0 32px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-logo { font-size: 18px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .header-logo-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+  .header-nav { display: flex; gap: 24px; }
+  .header-nav a { font-size: 14px; color: var(--grey-700); text-decoration: none; font-weight: 500; }
+  .header-nav a:hover { color: var(--navy); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: white; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .header-username { font-size: 13px; color: var(--grey-700); }
+
+  /* ── LAYOUT ── */
+  .page-layout {
+    max-width: 1180px; margin: 0 auto; padding: 28px 24px;
+    display: grid; grid-template-columns: 1fr 340px; gap: 24px;
+    align-items: start;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {}
+  .search-bar {
+    background: var(--white); border: 2px solid var(--grey-200); border-radius: 28px;
+    padding: 12px 20px; display: flex; align-items: center; gap: 10px;
+    margin-bottom: 24px; box-shadow: var(--shadow);
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus-within { border-color: var(--accent); }
+  .search-bar input { flex: 1; border: none; outline: none; font-size: 15px; color: var(--grey-900); background: transparent; }
+  .search-bar input::placeholder { color: var(--grey-400); }
+  .search-icon { color: var(--grey-400); font-size: 16px; }
+
+  .section-label { font-size: 11px; font-weight: 700; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+
+  .articles-grid { display: flex; flex-direction: column; gap: 2px; }
+  .article-row {
+    background: var(--white); border-radius: 10px; padding: 16px 20px;
+    cursor: pointer; transition: all 0.15s; border: 1px solid transparent;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .article-row:hover { border-color: var(--chip-border); box-shadow: var(--shadow); }
+  .article-row.active { border-color: var(--accent); background: var(--chip-bg); }
+  .article-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .article-info {}
+  .article-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+  .article-meta { font-size: 12px; color: var(--grey-400); }
+  .article-views { font-size: 11px; color: var(--grey-400); margin-left: auto; flex-shrink: 0; padding-top: 2px; }
+
+  /* Article detail */
+  .article-detail { display: none; background: var(--white); border-radius: var(--radius); padding: 28px; border: 1px solid var(--grey-200); }
+  .article-detail.visible { display: block; }
+  .article-detail-back { font-size: 13px; color: var(--accent); cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+  .article-detail-back:hover { text-decoration: underline; }
+  .article-detail-title { font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .article-detail-meta { font-size: 12px; color: var(--grey-400); margin-bottom: 20px; }
+  .article-detail-body { font-size: 14px; line-height: 1.7; color: var(--grey-700); }
+  .article-detail-body h4 { font-size: 14px; font-weight: 600; color: var(--grey-900); margin: 16px 0 6px; }
+  .article-detail-body ol, .article-detail-body ul { padding-left: 20px; margin: 8px 0; }
+  .article-detail-body li { margin-bottom: 5px; }
+
+  /* Nudge pills */
+  .nudge-pills { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 4px; }
+  .nudge-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--white); border: 1.5px solid var(--chip-border); color: var(--chip-text);
+    font-size: 12.5px; font-weight: 500; padding: 7px 13px; border-radius: 20px;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(91,91,214,0.12); white-space: nowrap;
+  }
+  .nudge-pill:hover { background: var(--chip-bg); border-color: #a78bfa; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(91,91,214,0.2); }
+  .nudge-pill-icon { font-size: 13px; }
+  .nudge-pill.ask-else { background: var(--accent); color: white; border-color: var(--accent); font-weight: 600; }
+  .nudge-pill.ask-else:hover { background: var(--accent-hover); border-color: var(--accent-hover); transform: translateY(-2px); }
+
+  /* ── AGENT ZONE (right sidebar) ── */
+  .agent-zone {
+    position: sticky; top: 76px;
+  }
+  .agent-zone-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .agent-zone-label {
+    font-size: 11px; font-weight: 700; color: var(--grey-400);
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .ao-badge {
+    font-size: 10px; font-weight: 600; color: var(--accent);
+    background: var(--chip-bg); border: 1px solid var(--chip-border);
+    border-radius: 4px; padding: 2px 6px; letter-spacing: 0.3px;
+  }
+
+  .az-card {
+    background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--grey-200); overflow: hidden;
+    box-shadow: var(--shadow); margin-bottom: 12px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .az-card-header {
+    padding: 14px 16px 10px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .az-card-icon { font-size: 20px; flex-shrink: 0; }
+  .az-card-title { font-size: 13px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+  .az-card-subtitle { font-size: 12px; color: var(--grey-700); margin-top: 2px; line-height: 1.4; }
+
+  .az-card-body { padding: 0 16px 14px; }
+
+  /* incident card */
+  .incident-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--orange-light); border: 1px solid #f4b942;
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;
+    font-size: 12px; font-weight: 600; color: var(--orange);
+  }
+
+  .az-cta-btn {
+    width: 100%; padding: 10px 16px; border-radius: 8px;
+    background: var(--accent); color: white; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .az-cta-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+  .az-cta-btn.secondary { background: var(--white); color: var(--accent); border: 1.5px solid var(--chip-border); }
+  .az-cta-btn.secondary:hover { background: var(--chip-bg); }
+
+  /* dynamic Q&A */
+  .qa-item { margin-bottom: 10px; }
+  .qa-question {
+    font-size: 12.5px; font-weight: 600; color: var(--navy);
+    margin-bottom: 4px; display: flex; align-items: flex-start; gap: 6px;
+  }
+  .qa-question-icon { color: var(--accent); flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+  .qa-answer { font-size: 12px; color: var(--grey-700); line-height: 1.5; padding-left: 17px; }
+  .qa-divider { height: 1px; background: var(--grey-100); margin: 10px 0; }
+  .ai-label { font-size: 10.5px; color: var(--grey-400); display: flex; align-items: center; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--grey-100); }
+  .ai-label-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+  /* nudge card */
+  .nudge-card-body { padding: 0 16px 14px; }
+  .nudge-text { font-size: 13px; color: var(--grey-700); line-height: 1.5; margin-bottom: 12px; }
+  .nudge-text strong { color: var(--navy); }
+
+  /* Quick Chat inline thread */
+  .quick-chat {
+    display: none; margin-top: 12px;
+    background: var(--white); border-radius: var(--radius);
+    border: 1.5px solid var(--chip-border); overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: fadeSlideIn 0.25s ease;
+  }
+  .quick-chat.visible { display: block; }
+  .quick-chat-header {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px; justify-content: space-between;
+  }
+  .quick-chat-title { font-size: 12px; font-weight: 700; color: white; display: flex; align-items: center; gap: 6px; }
+  .quick-chat-close { color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px; line-height: 1; }
+  .quick-chat-close:hover { color: white; }
+  .quick-chat-body { padding: 14px; max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { display: flex; gap: 8px; align-items: flex-start; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .chat-avatar.ai { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; }
+  .chat-avatar.user-av { background: var(--grey-200); color: var(--grey-700); }
+  .chat-bubble { max-width: 220px; padding: 8px 11px; border-radius: 10px; font-size: 12.5px; line-height: 1.5; }
+  .chat-bubble.ai { background: var(--chip-bg); color: var(--grey-900); border-bottom-left-radius: 3px; }
+  .chat-bubble.user { background: var(--accent); color: white; border-bottom-right-radius: 3px; }
+  .chat-bubble ol, .chat-bubble ul { padding-left: 16px; margin-top: 4px; }
+  .chat-bubble li { margin-bottom: 3px; }
+  .chat-ai-label { font-size: 10px; color: var(--grey-400); margin-top: 3px; padding-left: 34px; }
+
+  /* ── CASE OVERLAY ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,31,94,0.5); backdrop-filter: blur(3px);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .overlay-backdrop.visible { display: flex; }
+  .case-modal {
+    background: var(--white); border-radius: 16px;
+    width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .case-modal-header {
+    padding: 24px 28px 18px;
+    border-bottom: 1px solid var(--grey-100);
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .case-modal-title { font-size: 18px; font-weight: 700; color: var(--navy); }
+  .case-modal-subtitle { font-size: 13px; color: var(--grey-700); margin-top: 3px; }
+  .case-modal-close { color: var(--grey-400); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px; }
+  .case-modal-close:hover { color: var(--grey-900); }
+  .case-modal-body { padding: 20px 28px; }
+  .case-pre-fill-banner {
+    background: var(--chip-bg); border: 1px solid var(--chip-border);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 20px;
+    font-size: 12px; color: var(--chip-text); display: flex; align-items: center; gap: 8px;
+  }
+  .form-row { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--grey-700); margin-bottom: 5px; display: block; }
+  .form-value {
+    background: var(--grey-50); border: 1.5px solid var(--grey-200); border-radius: 8px;
+    padding: 9px 12px; font-size: 13px; color: var(--grey-900); width: 100%;
+    font-family: inherit;
+  }
+  .form-value.prefilled { border-color: var(--chip-border); background: var(--chip-bg); color: var(--navy); }
+  textarea.form-value { min-height: 80px; resize: vertical; }
+  .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .case-modal-footer { padding: 16px 28px 24px; }
+  .case-submit-btn {
+    width: 100%; padding: 12px; background: var(--accent); color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .case-submit-btn:hover { background: var(--accent-hover); }
+  .case-pills-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--grey-100); }
+  .case-pills-label { font-size: 12px; font-weight: 600; color: var(--grey-700); margin-bottom: 10px; }
+  .case-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+
+  /* ── SUBMITTED STATE ── */
+  .case-success { display: none; text-align: center; padding: 40px 28px; }
+  .case-success.visible { display: block; }
+  .case-success-icon { font-size: 48px; margin-bottom: 16px; }
+  .case-success-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .case-success-body { font-size: 14px; color: var(--grey-700); line-height: 1.6; }
+  .case-number { font-weight: 700; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- DEMO STEPPER -->
+<div class="demo-nav">
+  <span class="demo-nav-label">AO Signal</span>
+  <button class="demo-step active" id="step-btn-1" onclick="goStep(1)">① Arriving</button>
+  <span class="demo-step-arrow">→</span>
+  <button class="demo-step" id="step-btn-2" onclick="goStep(2)">② Browsing</button>
+  <span class="demo-step-arrow">→</span>
+  <button class="demo-step" id="step-btn-3" onclick="goStep(3)">③ Stuck</button>
+  <div class="demo-context-badge" id="context-badge">
+    <span>AO context:</span> Authenticated session · No prior signals
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon">A</div>
+    Acme Support
+  </div>
+  <nav class="header-nav">
+    <a href="#">Home</a>
+    <a href="#">My Cases</a>
+    <a href="#">Community</a>
+    <a href="#">Status</a>
+  </nav>
+  <div class="header-right">
+    <div class="header-avatar">JR</div>
+    <span class="header-username">Jordan R.</span>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="page-layout">
+
+  <!-- LEFT: MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- Search -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Search for answers…" oninput="onSearch(this.value)">
+    </div>
+
+    <!-- Article list -->
+    <div id="view-list">
+      <div class="section-label">Popular Articles</div>
+      <div class="articles-grid">
+        <div class="article-row" id="art-row-sso" onclick="showArticle('sso')">
+          <div class="article-icon">🔐</div>
+          <div class="article-info">
+            <div class="article-title">Why can't I log in after resetting my password?</div>
+            <div class="article-meta">Authentication · Updated 3 days ago</div>
+          </div>
+          <div class="article-views">22,567 views</div>
+        </div>
+        <div class="article-row" id="art-row-cert" onclick="showArticle('cert')">
+          <div class="article-icon">🛡️</div>
+          <div class="article-info">
+            <div class="article-title">Security certificate errors and SSO login failures</div>
+            <div class="article-meta">Authentication · Updated 1 day ago</div>
+          </div>
+          <div class="article-views">9,841 views</div>
+        </div>
+        <div class="article-row" onclick="null">
+          <div class="article-icon">💳</div>
+          <div class="article-info">
+            <div class="article-title">Understanding your Acme invoice</div>
+            <div class="article-meta">Billing · Updated 2 weeks ago</div>
+          </div>
+          <div class="article-views">14,203 views</div>
+        </div>
+        <div class="article-row" onclick="null">
+          <div class="article-icon">⚙️</div>
+          <div class="article-info">
+            <div class="article-title">Getting Started: Your First 30 Minutes with Acme</div>
+            <div class="article-meta">Onboarding · Updated 1 month ago</div>
+          </div>
+          <div class="article-views">31,409 views</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article detail -->
+    <div id="view-article" class="article-detail">
+      <div class="article-detail-back" onclick="showList()">← Back to articles</div>
+      <div class="article-detail-title" id="art-title"></div>
+      <div class="article-detail-meta" id="art-meta"></div>
+      <div class="article-detail-body" id="art-body"></div>
+      <div class="nudge-pills" id="art-pills"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: AGENT ZONE -->
+  <div class="agent-zone">
+    <div class="agent-zone-header">
+      <span class="agent-zone-label">Agent Zone</span>
+      <span class="ao-badge">AO</span>
+    </div>
+    <div id="az-slot"></div>
+
+    <!-- Quick Chat (inline thread, shown below agent zone pills) -->
+    <div class="quick-chat" id="quick-chat">
+      <div class="quick-chat-header">
+        <div class="quick-chat-title">🤖 Aria · Quick Chat</div>
+        <div class="quick-chat-close" onclick="closeChat()">✕</div>
+      </div>
+      <div class="quick-chat-body" id="quick-chat-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CASE OVERLAY -->
+<div class="overlay-backdrop" id="overlay" onclick="handleBackdropClick(event)">
+  <div class="case-modal" id="case-modal">
+
+    <!-- Form view -->
+    <div id="case-form-view">
+      <div class="case-modal-header">
+        <div>
+          <div class="case-modal-title">Create a Support Case</div>
+          <div class="case-modal-subtitle">We've pre-filled this based on your session — review and submit.</div>
+        </div>
+        <div class="case-modal-close" onclick="closeOverlay()">✕</div>
+      </div>
+      <div class="case-modal-body">
+        <div class="case-pre-fill-banner">
+          ✨ <strong>Pre-filled by Aria</strong> — based on your recent activity and the active certificate incident
+        </div>
+        <div class="form-row">
+          <label class="form-label">Subject</label>
+          <input class="form-value prefilled" type="text" value="Unable to log in after password reset — SSL certificate error (INC-2847)">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Description</label>
+          <textarea class="form-value prefilled">Customer reports being unable to authenticate after a standard password reset. Login loop observed: reset succeeds but sign-in returns to login page repeatedly. Likely related to active incident INC-2847 (expired SSL certificate on auth.acme-internal.com affecting SSO token validation).</textarea>
+        </div>
+        <div class="form-row-grid">
+          <div class="form-row">
+            <label class="form-label">Product Area</label>
+            <input class="form-value prefilled" type="text" value="Authentication / SSO">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Priority</label>
+            <input class="form-value prefilled" type="text" value="High — Active Incident">
+          </div>
+        </div>
+        <div class="form-row-grid">
+          <div class="form-row">
+            <label class="form-label">Your Email</label>
+            <input class="form-value prefilled" type="text" value="jordan.r@yourcompany.com">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Account</label>
+            <input class="form-value prefilled" type="text" value="YourCompany Inc. (Enterprise)">
+          </div>
+        </div>
+
+        <div class="case-pills-section">
+          <div class="case-pills-label">While your case is being worked — Aria can help now:</div>
+          <div class="case-pills">
+            <button class="nudge-pill" onclick="openCaseChat('mitigation')"><span class="nudge-pill-icon">🛠️</span>Get mitigation steps</button>
+            <button class="nudge-pill" onclick="openCaseChat('workaround')"><span class="nudge-pill-icon">🔄</span>Is there a workaround?</button>
+            <button class="nudge-pill" onclick="openCaseChat('eta')"><span class="nudge-pill-icon">⏱️</span>Expected resolution time?</button>
+            <button class="nudge-pill ask-else" onclick="openCaseChat('other')">✏️ Ask something else</button>
+          </div>
+        </div>
+      </div>
+      <div class="case-modal-footer">
+        <button class="case-submit-btn" onclick="submitCase()">Submit Case →</button>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div id="case-success-view" class="case-success">
+      <div class="case-success-icon">✅</div>
+      <div class="case-success-title">Case submitted successfully</div>
+      <div class="case-success-body">
+        Case <span class="case-number">#AC-209471</span> has been created and assigned to our Authentication team.<br><br>
+        Given the active incident (INC-2847), your case is flagged for priority review. You'll receive an update within 2 hours.
+      </div>
+      <br>
+      <button class="az-cta-btn" style="max-width:200px;margin:0 auto;" onclick="closeOverlay()">Done</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── ARTICLES ──
+  const articles = {
+    sso: {
+      title: 'Why can\'t I log in after resetting my password?',
+      meta: 'Authentication · Updated 3 days ago · 22,567 views',
+      body: `
+        <p>If you've reset your password but still can't sign in, you're likely caught in an <strong>authentication loop</strong>. This happens when your session token wasn't properly cleared, or when a downstream service (like your SSO provider) hasn't picked up the new credentials.</p>
+        <h4>Common causes</h4>
+        <ul>
+          <li>Cached session token from the previous session is still being presented</li>
+          <li>SSO certificate mismatch between your identity provider and Acme's auth service</li>
+          <li>Browser storing stale cookies — try a private/incognito window first</li>
+          <li>Active platform incident affecting token validation (check Status page)</li>
+        </ul>
+        <h4>Steps to try</h4>
+        <ol>
+          <li>Open a new incognito window and attempt login fresh</li>
+          <li>Clear all cookies for acme.com and retry</li>
+          <li>If using SSO, ask your IT admin to check your identity provider certificate expiry</li>
+          <li>Check <strong>status.acme.com</strong> for any active authentication incidents</li>
+        </ol>`,
+      pills: [
+        { icon: '🔄', label: 'Why does the loop keep repeating?', key: 'loop' },
+        { icon: '🛡️', label: 'Is this an SSO certificate issue?', key: 'cert_pill' },
+        { icon: '📞', label: 'How do I escalate this?', key: 'escalate' },
+      ]
+    },
+    cert: {
+      title: 'Security certificate errors and SSO login failures',
+      meta: 'Authentication · Updated 1 day ago · 9,841 views',
+      body: `
+        <p>SSL/TLS certificate issues are a leading cause of SSO login failures. When the certificate on an authentication endpoint expires or mismatches, your browser or identity provider will refuse the connection — often silently, presenting as a login loop rather than a certificate error.</p>
+        <h4>How to identify a certificate issue</h4>
+        <ul>
+          <li>Open browser dev tools → Network tab → look for failed requests to auth.acme-internal.com</li>
+          <li>Check for ERR_CERT_AUTHORITY_INVALID or ERR_CERT_DATE_INVALID errors</li>
+          <li>Ask your IT admin to run: <code>openssl s_client -connect auth.acme-internal.com:443</code></li>
+        </ul>
+        <h4>Current known issue</h4>
+        <p>⚠️ <strong>INC-2847 — Active:</strong> An SSL certificate on auth.acme-internal.com expired on Aug 16. Our team is working to renew it. Estimated resolution: within 4 hours. Workaround available — see below.</p>`,
+      pills: [
+        { icon: '🛠️', label: 'What\'s the workaround for INC-2847?', key: 'workaround_art' },
+        { icon: '⏱️', label: 'When will this be resolved?', key: 'eta_art' },
+        { icon: '📋', label: 'Create a case for my account', key: 'open_case' },
+      ]
+    }
+  };
+
+  let currentArticle = null;
+  let currentStep = 1;
+  let chatOpen = false;
+
+  // ── STEP NAVIGATION ──
+  const contextLabels = {
+    1: 'Authenticated session · No prior signals',
+    2: 'Read 2 auth articles · Dwell time: 4 min · Search: "can\'t login"',
+    3: '3 failed sign-ins · Read 2 auth articles · Active incident: INC-2847'
+  };
+
+  function goStep(n) {
+    currentStep = n;
+    [1,2,3].forEach(i => document.getElementById(`step-btn-${i}`).classList.toggle('active', i===n));
+    document.getElementById('context-badge').innerHTML = `<span>AO context:</span> ${contextLabels[n]}`;
+    renderAgentZone(n);
+    closeChat();
+    if (n === 2 && !currentArticle) showArticle('sso');
+    if (n === 3 && !currentArticle) showArticle('cert');
+  }
+
+  // ── AGENT ZONE RENDERER ──
+  function renderAgentZone(step) {
+    const slot = document.getElementById('az-slot');
+    if (step === 1) slot.innerHTML = renderDynamicQA();
+    if (step === 2) slot.innerHTML = renderNudgeCard();
+    if (step === 3) slot.innerHTML = renderIncidentCard();
+  }
+
+  function renderDynamicQA() {
+    return `
+    <div class="az-card">
+      <div class="az-card-header">
+        <div class="az-card-icon">💡</div>
+        <div>
+          <div class="az-card-title">Suggested for you</div>
+          <div class="az-card-subtitle">Based on your account and recent support trends</div>
+        </div>
+      </div>
+      <div class="az-card-body">
+        <div class="qa-item">
+          <div class="qa-question"><span class="qa-question-icon">Q</span>How do I reset my password?</div>
+          <div class="qa-answer">Go to the login page and click "Forgot password." You'll receive a reset link within 2 minutes. Check your spam folder if it doesn't arrive.</div>
+        </div>
+        <div class="qa-divider"></div>
+        <div class="qa-item">
+          <div class="qa-question"><span class="qa-question-icon">Q</span>Why does login fail after an SSO update?</div>
+          <div class="qa-answer">SSO changes can invalidate cached tokens. Clear your browser cookies for acme.com and retry, or contact your IT admin to re-sync your identity provider.</div>
+        </div>
+        <div class="qa-divider"></div>
+        <div class="qa-item">
+          <div class="qa-question"><span class="qa-question-icon">Q</span>How do I check for active incidents?</div>
+          <div class="qa-answer">Visit status.acme.com for real-time platform status. You can subscribe to email or Slack alerts for your product area.</div>
+        </div>
+        <div class="ai-label"><div class="ai-label-dot"></div>Generated by Aria · Based on your account type</div>
+      </div>
+    </div>
+    <div class="nudge-pills">
+      <button class="nudge-pill" onclick="openChat('reset_loop')"><span class="nudge-pill-icon">🔐</span>Having login trouble?</button>
+      <button class="nudge-pill" onclick="openChat('check_status')"><span class="nudge-pill-icon">📡</span>Check system status</button>
+      <button class="nudge-pill ask-else" onclick="openChat('other_arrive')">✏️ Ask Aria</button>
+    </div>`;
+  }
+
+  function renderNudgeCard() {
+    return `
+    <div class="az-card">
+      <div class="az-card-header">
+        <div class="az-card-icon">🔍</div>
+        <div>
+          <div class="az-card-title">Looks like you're troubleshooting login</div>
+          <div class="az-card-subtitle">You've read 2 articles on authentication this session</div>
+        </div>
+      </div>
+      <div class="nudge-card-body">
+        <div class="nudge-text">Here are the <strong>top 3 things to check</strong> when login fails after a password reset:</div>
+        <ol style="font-size:12.5px;color:var(--grey-700);line-height:1.7;padding-left:18px;margin-bottom:12px;">
+          <li>Try signing in from a private/incognito window</li>
+          <li>Clear all acme.com cookies and retry</li>
+          <li>Check if your SSO certificate has expired (IT admin can verify)</li>
+        </ol>
+        <div class="ai-label"><div class="ai-label-dot"></div>Generated by Aria · Based on your browsing this session</div>
+      </div>
+    </div>
+    <div class="nudge-pills">
+      <button class="nudge-pill" onclick="openChat('loop')"><span class="nudge-pill-icon">🔄</span>Still in a login loop?</button>
+      <button class="nudge-pill" onclick="openChat('cert_pill')"><span class="nudge-pill-icon">🛡️</span>Could it be a certificate?</button>
+      <button class="nudge-pill" onclick="openChat('escalate')"><span class="nudge-pill-icon">📞</span>How do I escalate?</button>
+      <button class="nudge-pill ask-else" onclick="openChat('other_browse')">✏️ Ask Aria</button>
+    </div>`;
+  }
+
+  function renderIncidentCard() {
+    return `
+    <div class="az-card">
+      <div class="az-card-header">
+        <div class="az-card-icon">⚠️</div>
+        <div>
+          <div class="az-card-title">We think we know what's happening</div>
+          <div class="az-card-subtitle">An active incident matches your symptoms</div>
+        </div>
+      </div>
+      <div class="az-card-body">
+        <div class="incident-badge">🔴 INC-2847 · Active · Authentication</div>
+        <div style="font-size:12.5px;color:var(--grey-700);line-height:1.6;margin-bottom:14px;">
+          An <strong>expired SSL certificate</strong> on <code>auth.acme-internal.com</code> is causing login loops for users who recently reset their password. Our team is working on it — ETA: ~4 hours.
+        </div>
+        <button class="az-cta-btn" onclick="openCaseOverlay()">📋 Create a case for my account →</button>
+        <div class="ai-label"><div class="ai-label-dot"></div>Aria matched your session signals to INC-2847</div>
+      </div>
+    </div>
+    <div class="nudge-pills">
+      <button class="nudge-pill" onclick="openChat('mitigation')"><span class="nudge-pill-icon">🛠️</span>Any mitigation steps?</button>
+      <button class="nudge-pill" onclick="openChat('workaround')"><span class="nudge-pill-icon">🔄</span>Is there a workaround?</button>
+      <button class="nudge-pill" onclick="openChat('eta')"><span class="nudge-pill-icon">⏱️</span>Expected resolution?</button>
+      <button class="nudge-pill ask-else" onclick="openChat('other_stuck')">✏️ Ask Aria</button>
+    </div>`;
+  }
+
+  // ── ARTICLE NAV ──
+  function showArticle(key) {
+    currentArticle = key;
+    const a = articles[key];
+    document.getElementById('art-title').textContent = a.title;
+    document.getElementById('art-meta').textContent = a.meta;
+    document.getElementById('art-body').innerHTML = a.body;
+    const pillsEl = document.getElementById('art-pills');
+    pillsEl.innerHTML = a.pills.map(p =>
+      `<button class="nudge-pill" onclick="onArticlePill('${p.key}')"><span class="nudge-pill-icon">${p.icon}</span>${p.label}</button>`
+    ).join('') + `<button class="nudge-pill ask-else" onclick="openChat('other_art')">✏️ Ask something else</button>`;
+    document.getElementById('view-list').style.display = 'none';
+    document.getElementById('view-article').classList.add('visible');
+    document.querySelectorAll('.article-row').forEach(r => r.classList.remove('active'));
+    const row = document.getElementById(`art-row-${key}`);
+    if (row) row.classList.add('active');
+  }
+
+  function showList() {
+    currentArticle = null;
+    document.getElementById('view-list').style.display = 'block';
+    document.getElementById('view-article').classList.remove('visible');
+    document.querySelectorAll('.article-row').forEach(r => r.classList.remove('active'));
+  }
+
+  function onArticlePill(key) {
+    if (key === 'open_case') { openCaseOverlay(); return; }
+    openChat(key);
+  }
+
+  // ── QUICK CHAT RESPONSES ──
+  const chatResponses = {
+    loop: {
+      q: 'Why does the login loop keep repeating?',
+      a: `The loop happens because your browser is presenting a <strong>stale session token</strong> from before the password reset — Acme's auth service sees a mismatch and redirects you back to login.<br><br>
+          The fastest fix: open a private window and try signing in there. If that works, clear all acme.com cookies in your main browser.`
+    },
+    cert_pill: {
+      q: 'Could this be an SSL certificate issue?',
+      a: `Yes — very likely. If you're on SSO, there's an active incident right now (INC-2847) where an expired certificate on <code>auth.acme-internal.com</code> is breaking token validation for users who recently reset passwords.<br><br>
+          Check <strong>status.acme.com</strong> to confirm, and consider creating a case so we can track your account specifically.`
+    },
+    escalate: {
+      q: 'How do I escalate this to your team?',
+      a: `You can create a support case and flag it as Priority: High. Given the active incident (INC-2847), your case will be auto-routed to the Authentication team.<br><br>
+          Want me to pre-fill a case with everything I know about your situation?`,
+      followup: [
+        { icon: '📋', label: 'Yes, pre-fill a case', key: 'open_case_chat' }
+      ]
+    },
+    mitigation: {
+      q: 'Are there any mitigation steps while my case is being worked?',
+      a: `While we resolve INC-2847, here are your options:
+          <ol><li><strong>Private/incognito window</strong> — bypasses the cached token in most cases</li>
+          <li><strong>Different browser</strong> — Chrome, Firefox, Safari each maintain separate cookie stores</li>
+          <li><strong>Direct URL login</strong> — try <code>acme.com/login?bypass_sso=1</code> (bypasses SSO, uses username/password directly)</li>
+          <li>Ask your IT admin to temporarily disable certificate pinning on your SSO configuration</li></ol>`
+    },
+    workaround: {
+      q: 'Is there a workaround I can use right now?',
+      a: `Yes — the most reliable workaround is the <strong>bypass SSO login</strong>:<br><br>
+          Go to <code>acme.com/login?bypass_sso=1</code> and sign in with your username and password directly. This routes around the expired certificate entirely.<br><br>
+          This will work until INC-2847 is resolved, usually within 4 hours.`
+    },
+    eta: {
+      q: 'When is this expected to be resolved?',
+      a: `INC-2847 was opened today at 9:14 AM. Our on-call team is actively renewing the certificate. <strong>Current ETA: within 4 hours</strong> from time of incident opening.<br><br>
+          You can subscribe to real-time updates at <strong>status.acme.com/incidents/inc-2847</strong>.`
+    },
+    workaround_art: {
+      q: "What's the workaround for INC-2847?",
+      a: `Use the <strong>bypass SSO login</strong> at <code>acme.com/login?bypass_sso=1</code> — this routes around the expired certificate and lets you sign in with username/password directly. Works until the cert is renewed (~4 hours).`
+    },
+    eta_art: {
+      q: 'When will INC-2847 be resolved?',
+      a: `<strong>ETA: within 4 hours</strong> from 9:14 AM today. The on-call team is actively renewing the certificate. Subscribe to updates at status.acme.com.`
+    },
+    reset_loop: {
+      q: "I'm having trouble logging in",
+      a: `I can help with that. The most common cause right now is <strong>INC-2847</strong> — an expired SSL certificate that's causing login loops for users who recently reset their password.<br><br>
+          Does this match what you're seeing: you reset your password, but it keeps sending you back to the login page?`
+    },
+    check_status: {
+      q: 'Is there an active incident I should know about?',
+      a: `Yes — <strong>INC-2847</strong> is currently active. An expired SSL certificate on our authentication service is causing login failures, particularly for users who recently changed their password.<br><br>
+          Status: 🔴 Active · Investigating · ETA 4 hours. See status.acme.com for live updates.`
+    },
+    other_arrive: {
+      q: 'I have a question',
+      a: `Of course — what can I help you with? You can ask me anything about your Acme account, authentication, billing, or how to get started.`
+    },
+    other_browse: { q: "I have another question", a: `Happy to help — what's on your mind?` },
+    other_stuck: { q: "I have another question", a: `Of course — what would you like to know?` },
+    other_art: { q: "I have another question", a: `Sure — ask me anything and I'll do my best to help.` },
+    open_case_chat: { q: 'Yes, pre-fill a case with what you know', a: `Opening the case form now with everything pre-filled…`, action: 'open_case' }
+  };
+
+  function openChat(key) {
+    const resp = chatResponses[key];
+    if (!resp) return;
+    const body = document.getElementById('quick-chat-body');
+    body.innerHTML = '';
+    body.innerHTML += msgHTML('user', resp.q);
+    setTimeout(() => {
+      body.innerHTML += msgHTML('ai', resp.a);
+      if (resp.followup) {
+        const pills = resp.followup.map(f =>
+          `<button class="nudge-pill" style="margin-top:4px;" onclick="${f.key === 'open_case_chat' ? 'openCaseOverlay()' : `openChat('${f.key}')`}"><span class="nudge-pill-icon">${f.icon}</span>${f.label}</button>`
+        ).join('');
+        body.innerHTML += `<div style="padding-left:34px;">${pills}</div>`;
+      }
+      body.innerHTML += `<div class="chat-ai-label">Aria · AI-generated · ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>`;
+      body.scrollTop = body.scrollHeight;
+      if (resp.action === 'open_case') setTimeout(openCaseOverlay, 600);
+    }, 400);
+    document.getElementById('quick-chat').classList.add('visible');
+    chatOpen = true;
+  }
+
+  function openCaseChat(key) {
+    closeOverlay();
+    setTimeout(() => openChat(key), 200);
+  }
+
+  function msgHTML(role, text) {
+    if (role === 'user') return `
+      <div class="chat-msg user">
+        <div class="chat-avatar user-av">JR</div>
+        <div class="chat-bubble user">${text}</div>
+      </div>`;
+    return `
+      <div class="chat-msg">
+        <div class="chat-avatar ai">🤖</div>
+        <div class="chat-bubble ai">${text}</div>
+      </div>`;
+  }
+
+  function closeChat() {
+    document.getElementById('quick-chat').classList.remove('visible');
+    document.getElementById('quick-chat-body').innerHTML = '';
+    chatOpen = false;
+  }
+
+  // ── CASE OVERLAY ──
+  function openCaseOverlay() {
+    document.getElementById('overlay').classList.add('visible');
+    document.getElementById('case-form-view').style.display = 'block';
+    document.getElementById('case-success-view').classList.remove('visible');
+  }
+
+  function closeOverlay() {
+    document.getElementById('overlay').classList.remove('visible');
+  }
+
+  function handleBackdropClick(e) {
+    if (e.target === document.getElementById('overlay')) closeOverlay();
+  }
+
+  function submitCase() {
+    document.getElementById('case-form-view').style.display = 'none';
+    document.getElementById('case-success-view').classList.add('visible');
+  }
+
+  // ── SEARCH (stub — triggers step 2 context) ──
+  function onSearch(val) {
+    if (val.length > 3 && currentStep === 1) goStep(2);
+  }
+
+  // ── INIT ──
+  renderAgentZone(1);
+</script>
+</body>
+</html>
